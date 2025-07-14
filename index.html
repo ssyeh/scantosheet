@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生證掃描系統</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        #root {
+            width: 100%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #1a73e8;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        #reader {
+            width: 100%;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #5f6368;
+        }
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .activity-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .activity-btn {
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            background-color: #f8f9fa;
+            color: #3c4043;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .activity-btn:hover {
+            background-color: #e8eaed;
+        }
+        .activity-btn.active {
+            background-color: #1a73e8;
+            color: #fff;
+            border-color: #1a73e8;
+            font-weight: 600;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 500;
+            display: none; /* Initially hidden */
+        }
+        .success {
+            background-color: #e6f4ea;
+            color: #1e8e3e;
+            border: 1px solid #a8d5b2;
+        }
+        .error {
+            background-color: #fce8e6;
+            color: #d93025;
+            border: 1px solid #f7b5b0;
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <h1>學生證掃描系統</h1>
+
+        <!-- Barcode Scanner Element -->
+        <div id="reader"></div>
+
+        <!-- Input Fields -->
+        <div class="form-group">
+            <label>活動類別</label>
+            <div class="activity-buttons">
+                <button class="activity-btn active" data-value="划船">划船</button>
+                <button class="activity-btn" data-value="滑雪">滑雪</button>
+                <button class="activity-btn" data-value="VR拳擊">VR拳擊</button>
+                <button class="activity-btn" data-value="眼明手快">眼明手快</button>
+                <button class="activity-btn" data-value="踩方格">踩方格</button>
+                <button class="activity-btn" data-value="空中飛人">空中飛人</button>
+            </div>
+            <!-- Hidden input to store the selected value for app.js -->
+            <input type="hidden" id="activityType" value="划船">
+        </div>
+        <div class="form-group">
+            <label for="score">分數</label>
+            <input type="number" id="score" value="10">
+        </div>
+
+        <!-- Result Display -->
+        <div id="result"></div>
+    </div>
+
+    <!-- Include the html5-qrcode library -->
+    <script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
+    
+    <script>
+        // JavaScript to handle button clicks
+        const activityButtons = document.querySelectorAll('.activity-btn');
+        const hiddenInput = document.getElementById('activityType');
+
+        activityButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                activityButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to the clicked button
+                button.classList.add('active');
+                // Update the hidden input's value
+                hiddenInput.value = button.dataset.value;
+            });
+        });
+    </script>
+
+    <!-- Include your custom app script -->
+    <script src="app.js"></script>
+</body>
+</html>
