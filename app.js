@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gainNode.connect(audioContext.destination);
 
         oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
-        gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(5000, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5);
 
         oscillator.start(audioContext.currentTime);
