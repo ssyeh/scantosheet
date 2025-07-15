@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'reader',
         {
             fps: 10,
-            qrbox: { width: 250, height: 150 },
+            qrbox: { width: 250, height: 250 },
             // Request the front camera
             camera: {
                 facingMode: 'user'
