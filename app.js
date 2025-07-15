@@ -2,101 +2,150 @@ document.addEventListener('DOMContentLoaded', () => {
     // !!! =============================================================== !!!
     // !!! ==> 請將此處的網址替換成你從 Google Apps Script 取得的部署網址 <== !!!
     // !!! =============================================================== !!!
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPZAVrJoMhyDjlDQ_wrph5sfgA5d--KKu5Nlv36EkocF2i4lmXSvqsud4Tve5lqLM/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQZ6Zu78wIFAt6pzutgT6ofZbyZ4SW3UpMdIV32gc/dev';
 
-    const resultElement = document.getElementById('result');
+    // --- DOM Elements ---
+    const statusMessageElement = document.getElementById('status-message');
+    const confirmationDialog = document.getElementById('scan-confirmation');
     const activityTypeElement = document.getElementById('activityType');
     const scoreElement = document.getElementById('score');
+    const confirmBtn = document.getElementById('confirm-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
 
-    /**
-     * Displays a message in the result element for a few seconds.
-     * @param {string} message The message to display.
-     * @param {boolean} isSuccess Whether the message indicates success or error.
-     */
-    function showMessage(message, isSuccess) {
-        resultElement.textContent = message;
-        resultElement.className = isSuccess ? 'success' : 'error';
-        resultElement.style.display = 'block';
+    // --- State ---
+    let lastScannedData = null;
 
-        // Hide the message after 5 seconds
-        setTimeout(() => {
-            resultElement.style.display = 'none';
-        }, 5000);
+    // --- Audio Context for Beep Sound ---
+    let audioContext;
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+        console.warn('Web Audio API is not supported in this browser.');
     }
 
     /**
-     * Sends the scanned data to the Google Apps Script backend.
-     * @param {string} studentID The decoded student ID from the barcode.
+     * Plays a short beep sound.
      */
-    async function sendDataToSheet(studentID) {
-        const activityType = activityTypeElement.value.trim();
-        const score = scoreElement.value;
+    function playBeep() {
+        if (!audioContext) return;
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
 
-        if (!activityType || !score) {
-            showMessage('活動類別和分數不能為空！', false);
-            return;
-        }
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5);
 
-        // Show immediate feedback
-        showMessage(`掃描到學號: ${studentID}，正在傳送...`, true);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+    }
+
+    /**
+     * Displays a final status message (success or error).
+     * @param {string} message The message to display.
+     * @param {boolean} isSuccess True for success, false for error.
+     */
+    function showStatusMessage(message, isSuccess) {
+        statusMessageElement.textContent = message;
+        statusMessageElement.className = isSuccess ? 'success' : 'error';
+        statusMessageElement.style.display = 'block';
+
+        setTimeout(() => {
+            statusMessageElement.style.display = 'none';
+        }, 4000);
+    }
+
+    /**
+     * Resets the UI to the initial scanning state.
+     */
+    function resetUI() {
+        lastScannedData = null;
+        confirmationDialog.classList.add('dialog-hidden');
+        html5QrcodeScanner.resume();
+    }
+
+    /**
+     * Handles the confirmation of a scan.
+     */
+    async function handleConfirm() {
+        if (!lastScannedData) return;
+
+        const { studentID, activityType, score } = lastScannedData;
+        showStatusMessage(`正在傳送學號: ${studentID}...`, true);
+        confirmationDialog.classList.add('dialog-hidden');
 
         try {
-            const response = await fetch(APPS_SCRIPT_URL, {
+            await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Important for cross-origin requests to Apps Script
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    studentID: studentID,
-                    activityType: activityType,
-                    score: score
-                }),
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(lastScannedData),
             });
-            
-            // Note: With 'no-cors', we cannot read the response body from Apps Script.
-            // We assume success if the request itself doesn't throw an error.
-            // The actual success/error handling is optimistic.
-            showMessage(`學號 ${studentID} 已成功傳送！`, true);
-
+            showStatusMessage(`學號 ${studentID} 已成功傳送！`, true);
         } catch (error) {
             console.error('Error sending data:', error);
-            showMessage(`傳送失敗: ${error.message}`, false);
+            showStatusMessage(`傳送失敗: ${error.message}`, false);
         }
+        // Reset after a short delay to allow user to see the message
+        setTimeout(resetUI, 2000);
     }
 
     /**
-     * The callback function that gets executed when a barcode is successfully scanned.
+     * Handles the cancellation of a scan.
+     */
+    function handleCancel() {
+        showStatusMessage('已取消操作', false);
+        resetUI();
+    }
+
+    // Add event listeners to confirmation buttons
+    confirmBtn.addEventListener('click', handleConfirm);
+    cancelBtn.addEventListener('click', handleCancel);
+
+    /**
+     * Callback for successful scan.
      * @param {string} decodedText The decoded text from the barcode.
-     * @param {object} decodedResult The full result object from the scanner.
      */
-    function onScanSuccess(decodedText, decodedResult) {
-        // The library might call this multiple times per scan, so we can add a small debounce
-        // or simply handle it. For now, we'll process every successful scan.
-        console.log(`Code matched = ${decodedText}`, decodedResult);
-        sendDataToSheet(decodedText);
+    function onScanSuccess(decodedText) {
+        // Prevent multiple triggers for the same scan
+        if (lastScannedData) return;
+
+        html5QrcodeScanner.pause();
+        playBeep();
+
+        const activityType = activityTypeElement.value;
+        const score = scoreElement.value;
+
+        lastScannedData = { studentID: decodedText, activityType, score };
+
+        // Display data in the confirmation dialog
+        document.getElementById('confirm-student-id').textContent = decodedText;
+        document.getElementById('confirm-activity').textContent = activityType;
+        document.getElementById('confirm-score').textContent = score;
+
+        // Show the dialog
+        confirmationDialog.classList.remove('dialog-hidden');
     }
 
-    /**
-     * The callback function for handling scan errors.
-     * @param {string} errorMessage The error message.
-     */
     function onScanFailure(errorMessage) {
-        // We can ignore common errors like "No QR code found."
-        // console.warn(`Code scan error = ${errorMessage}`);
+        // Ignore non-critical errors
     }
 
-    // --- Main Execution ---
-    // Create a new scanner instance
+    // --- Main Scanner Initialization ---
     const html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader", // The ID of the element to render the scanner in
+        'reader',
         {
-            fps: 10, // Frames per second to scan
-            qrbox: { width: 250, height: 250 } // Size of the scanning box
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            // Request the front camera
+            camera: {
+                facingMode: 'user'
+            }
         },
-        /* verbose= */ false // Set to true for detailed logs
+        false
     );
 
-    // Start the scanner
     html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 });

@@ -79,14 +79,61 @@
             border-color: #1a73e8;
             font-weight: 600;
         }
-        #result {
+
+        /* Styles for the status and confirmation dialog */
+        #status-container {
             margin-top: 20px;
+            width: 100%;
+        }
+        #status-message {
             padding: 12px;
             border-radius: 4px;
             text-align: center;
             font-weight: 500;
             display: none; /* Initially hidden */
         }
+        #scan-confirmation {
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #scan-confirmation h4 {
+            margin-top: 0;
+            color: #1a73e8;
+        }
+        #scan-confirmation p {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+        .dialog-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .dialog-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        #confirm-btn {
+            background-color: #1a73e8;
+            color: white;
+        }
+        #cancel-btn {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        .dialog-hidden {
+            display: none !important;
+        }
+
+        /* Re-using success/error styles for the status message */
         .success {
             background-color: #e6f4ea;
             color: #1e8e3e;
@@ -125,8 +172,23 @@
             <input type="number" id="score" value="10">
         </div>
 
-        <!-- Result Display -->
-        <div id="result"></div>
+        <!-- Result Display Area -->
+        <div id="status-container">
+            <!-- This div is for showing final success/error messages -->
+            <div id="status-message"></div>
+
+            <!-- This div is the confirmation dialog, hidden by default -->
+            <div id="scan-confirmation" class="dialog-hidden">
+                <h4>請確認資料</h4>
+                <p><strong>學號:</strong> <span id="confirm-student-id"></span></p>
+                <p><strong>活動:</strong> <span id="confirm-activity"></span></p>
+                <p><strong>分數:</strong> <span id="confirm-score"></span></p>
+                <div class="dialog-buttons">
+                    <button id="confirm-btn">確認傳送</button>
+                    <button id="cancel-btn">取消</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Include the html5-qrcode library -->
