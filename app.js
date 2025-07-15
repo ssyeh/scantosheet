@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gainNode.connect(audioContext.destination);
 
         oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(5000, audioContext.currentTime);
-        gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(2000, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(2.0, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5);
 
         oscillator.start(audioContext.currentTime);
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'reader',
         {
             fps: 10,
-            qrbox: { width: 250, height: 250 },
+            qrbox: { width: 250, height: 150 },
             // Request the front camera
             camera: {
                 facingMode: 'user'
