@@ -139,10 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
         {
             fps: 10,
             qrbox: { width: 250, height: 250 },
-            // Request the front camera
-            camera: {
-                facingMode: 'user'
-            }
+            // We can request the camera directly without specifying front or back
+            camera: true
         },
         false
     );
