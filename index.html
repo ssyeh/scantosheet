@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>學生證掃描系統</title>
+    <title>學生/員工證掃描系統</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -35,6 +35,7 @@
             border-radius: 8px;
             overflow: hidden;
             margin-bottom: 20px;
+            max-height: 400px; /* Adjust this value as needed */
         }
         .form-group {
             margin-bottom: 16px;
@@ -155,17 +156,15 @@
 
         <!-- Input Fields -->
         <div class="form-group">
-            <label>活動類別</label>
-            <div class="activity-buttons">
-                <button class="activity-btn active" data-value="划船">划船</button>
-                <button class="activity-btn" data-value="滑雪">滑雪</button>
-                <button class="activity-btn" data-value="VR拳擊">VR拳擊</button>
-                <button class="activity-btn" data-value="眼明手快">眼明手快</button>
-                <button class="activity-btn" data-value="踩方格">踩方格</button>
-                <button class="activity-btn" data-value="空中飛人">空中飛人</button>
-            </div>
-            <!-- Hidden input to store the selected value for app.js -->
-            <input type="hidden" id="activityType" value="划船">
+            <label for="activityType">活動類別</label>
+            <select id="activityType">
+                <option value="划船">划船</option>
+                <option value="滑雪">滑雪</option>
+                <option value="VR拳擊">VR拳擊</option>
+                <option value="眼明手快">眼明手快</option>
+                <option value="踩方格">踩方格</option>
+                <option value="空中飛人">空中飛人</option>
+            </select>
         </div>
         <div class="form-group">
             <label for="score">分數</label>
@@ -194,22 +193,7 @@
     <!-- Include the html5-qrcode library -->
     <script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
     
-    <script>
-        // JavaScript to handle button clicks
-        const activityButtons = document.querySelectorAll('.activity-btn');
-        const hiddenInput = document.getElementById('activityType');
-
-        activityButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                // Remove active class from all buttons
-                activityButtons.forEach(btn => btn.classList.remove('active'));
-                // Add active class to the clicked button
-                button.classList.add('active');
-                // Update the hidden input's value
-                hiddenInput.value = button.dataset.value;
-            });
-        });
-    </script>
+    
 
     <!-- Include your custom app script -->
     <script src="app.js"></script>
