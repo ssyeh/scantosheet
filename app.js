@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // !!! =============================================================== !!!
     // !!! ==> 請將此處的網址替換成你從 Google Apps Script 取得的部署網址 <== !!!
     // !!! =============================================================== !!!
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQZ6Zu78wIFAt6pzutgT6ofZbyZ4SW3UpMdIV32gc/dev';
-
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRuFeoMZ2hcs3HDS4HQ7auxkm9ibMFyXAAJAYczHFAXPwqpUOdyNjvd_5KKV4KuhBJ/exec';
+    
     // --- DOM Elements ---
     const statusMessageElement = document.getElementById('status-message');
     const confirmationDialog = document.getElementById('scan-confirmation');
@@ -11,6 +11,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreElement = document.getElementById('score');
     const confirmBtn = document.getElementById('confirm-btn');
     const cancelBtn = document.getElementById('cancel-btn');
+
+    /**
+     * Fetches the list of activities from the Google Apps Script and populates the dropdown.
+     */
+    async function populateActivities() {
+        try {
+            // Append a query parameter to indicate we want to fetch activities
+            const response = await fetch(`${APPS_SCRIPT_URL}?action=getActivities`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const result = await response.json();
+
+            if (result.status === 'success' && Array.isArray(result.data)) {
+                activityTypeElement.innerHTML = ''; // Clear existing options
+                result.data.forEach(activity => {
+                    const option = document.createElement('option');
+                    option.value = activity;
+                    option.textContent = activity;
+                    activityTypeElement.appendChild(option);
+                });
+            } else {
+                throw new Error(result.message || 'Failed to load activities.');
+            }
+        } catch (error) {
+            console.error('Error fetching activities:', error);
+            // Keep default options as a fallback
+            showStatusMessage('無法載入活動清單，請檢查網路連線或後台設定。', false);
+        }
+    }
 
     // --- State ---
     let lastScannedData = null;
@@ -146,4 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
     html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+    // Fetch and populate the activity list when the page loads
+    populateActivities();
 });
